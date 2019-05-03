@@ -1,19 +1,36 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  constructor(private readonly reflector: Reflector, private authService: AuthService) { }
+
+  canActivate(context: ExecutionContext): boolean | Promise<boolean> {
+
+    const request = context.switchToHttp().getRequest();
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
+
     if (!roles) {
       return true;
     }
-    const response = context.switchToHttp().getResponse();
-    const cognitoRoles = response.locals.user["cognito:groups"]
-    console.log(cognitoRoles);
-    const hasRole = () => cognitoRoles.some((role) => roles.includes(role));
-    return cognitoRoles && hasRole();
+
+    return new Promise((resolve) => {
+      // Try to validate the roles
+      try {
+        const token = this.authService.decodeJwt(request);
+        const cognitoRoles = token['cognito:groups'];
+        const hasRole = () => cognitoRoles.some((role) => roles.includes(role));
+        if (cognitoRoles && hasRole()) {
+          resolve(true);
+        }
+        resolve(false);
+      } catch (error) {
+        // If token is not valid, respond with 401 (unauthorized)
+        resolve(false);
+      }
+    });
   }
 }

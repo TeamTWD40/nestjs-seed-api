@@ -1,41 +1,44 @@
-import { Controller, Get, Post, Body, Delete, Param, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Request } from 'express';
+import { AuthGuard } from '../auth/auth.guard';
+import { AuthService } from '../auth/auth.service';
+import { Roles } from '..//auth/roles.decorator';
+
 import { CreateProfileDto } from './dto/create-profile.dto';
-import { ProfileService } from './profile.service';
 import { Profile } from './interfaces/profile.interface';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { ProfileService } from './profile.service';
 
 @Controller('profile')
+@UseGuards(AuthGuard)
 export class ProfileController {
 
-    constructor(private  readonly profileService: ProfileService) {}
+    constructor(private authService: AuthService, private readonly profileService: ProfileService) {}
 
     @Get()
-    @UseGuards(AuthGuard)
-    // @Roles('admin')
-    findAll(): Promise<Profile[]> {
-        return this.profileService.findAll();
-    }
-
-    @Get(':id')
-    @UseGuards(AuthGuard)
-    findOne(@Param('id') id): Promise<Profile> {
+    @Roles('users')
+    findOne(@Req() req: Request): Promise<Profile> {
+        const id = this.authService.getUsernameFromJwt(req);
         return this.profileService.findOne(id);
     }
 
     @Post()
-    create(@Body() createProfileDto: CreateProfileDto): Promise<Profile> {
-        return this.profileService.create(createProfileDto);
+    @Roles('users')
+    create(@Req() req: Request, @Body() profileDto: CreateProfileDto): Promise<Profile> {
+        const id = this.authService.getUsernameFromJwt(req);
+        return this.profileService.create(id, profileDto as Profile);
     }
 
-    @Delete(':id')
-    delete(@Param('id') id): Promise<Profile> {
+    @Delete()
+    @Roles('users')
+    delete(@Req() req: Request): Promise<Profile> {
+        const id = this.authService.getUsernameFromJwt(req);
         return this.profileService.delete(id);
     }
 
-    @Put(':id')
-    update(@Body() profile: CreateProfileDto, @Param('id') id): Promise<Profile> {
-        return this.profileService.update(id, profile);
+    @Put()
+    @Roles('users')
+    update(@Req() req: Request, @Body() profile: CreateProfileDto): Promise<Profile> {
+        const id = this.authService.getUsernameFromJwt(req);
+        return this.profileService.update(id, profile as Profile);
     }
 }

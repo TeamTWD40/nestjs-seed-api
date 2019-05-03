@@ -15,10 +15,11 @@ export class ProfileService {
     }
 
     async findOne(id: string): Promise<Profile> {
-        return await this.profileModel.findOne(id);
+        return await this.profileModel.findById(id);
     }
 
-    async create(profile: Profile): Promise<Profile> {
+    async create(id: string, profile: Profile): Promise<Profile> {
+        profile._id = id;
         const newProfile = new this.profileModel(profile);
         return await newProfile.save();
     }
