@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { AdminController } from './admin/admin.controller';
+import { AdminModule } from './admin/admin.module';
 import { AdminService } from './admin/admin.service';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -12,7 +13,6 @@ import config from './config/keys';
 import { ProfileController } from './profile/profile.controller';
 import { ProfileModule } from './profile/profile.module';
 import { ProfileService } from './profile/profile.service';
-import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [

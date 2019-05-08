@@ -20,8 +20,7 @@ async function bootstrap() {
   const swaggerDoc = SwaggerModule.createDocument(app, options, { include: [AdminModule, ProfileModule] });
 
   SwaggerModule.setup('/api/docs', app, swaggerDoc, {
-    // swaggerUrl: `${hostDomain}/api/docs-json`,
-    swaggerUrl: `http://localhost:9000/api/docs-json`,
+    swaggerUrl: `/api/docs-json`,
     explorer: true,
     swaggerOptions: {
       docExpansion: 'list',
