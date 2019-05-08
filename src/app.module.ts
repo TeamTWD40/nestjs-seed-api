@@ -15,7 +15,11 @@ import { ProfileService } from './profile/profile.service';
 import { AdminModule } from './admin/admin.module';
 
 @Module({
-  imports: [AdminModule, ProfileModule, MongooseModule.forRoot(config.mongoURI)],
+  imports: [
+    AdminModule,
+    ProfileModule,
+    MongooseModule.forRoot(config.mongoURI, { useNewUrlParser: true }),
+  ],
   controllers: [AppController, AdminController, ProfileController],
   providers: [
     AppService,

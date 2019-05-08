@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AuthService } from 'src/auth/auth.service';
-import { ProfileSchema } from 'src/profile/schemas/profile.schema';
 
+import { AuthService } from '../auth/auth.service';
+import { ProfileSchema } from '../profile/schemas/profile.schema';
 import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 

@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Profile } from 'src/profile/interfaces/profile.interface';
+
+import { Profile } from '../profile/interfaces/profile.interface';
 
 @Injectable()
 export class AdminService {

@@ -1,11 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { Roles } from 'src/auth/roles.decorator';
-import { CreateProfileDto } from 'src/profile/dto/create-profile.dto';
-import { Profile } from 'src/profile/interfaces/profile.interface';
 
-import { AdminService } from './admin.service';
-import { RolesGuard } from 'src/auth/roles.guard';
+import { AdminService } from '../admin/admin.service';
+import { AuthGuard } from '../auth/auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { CreateProfileDto } from '../profile/dto/create-profile.dto';
+import { Profile } from '../profile/interfaces/profile.interface';
 
 @Controller('admin')
 @UseGuards(AuthGuard)

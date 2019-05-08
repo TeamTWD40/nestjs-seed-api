@@ -1,9 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, Req, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
+
 import { AuthGuard } from '../auth/auth.guard';
 import { AuthService } from '../auth/auth.service';
-import { Roles } from '..//auth/roles.decorator';
-
+import { Roles } from '../auth/roles.decorator';
 import { CreateProfileDto } from './dto/create-profile.dto';
 import { Profile } from './interfaces/profile.interface';
 import { ProfileService } from './profile.service';
