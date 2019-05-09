@@ -1,0 +1,22 @@
+#!/bin/bash
+
+REGISTRY=$1
+appName=$2
+TAG2PROD=$3
+containerPort=$4
+nodePort=$5
+
+
+dockerImage="${REGISTRY}/${TAG2PROD}"
+isImage="prod/${appName}"
+
+jq --arg appName "$appName"  --arg dockerImage "$dockerImage" --arg namespace 'prod' '.metadata.name = $appName | .metadata.namespace = $namespace | .spec.tags[0].from.name = $dockerImage' imagestream.json > imagestream2.json
+
+jq --arg appName "$appName" --arg port "$containerPort" --arg image "$isImage" --arg namespace 'prod' '.metadata.name = $appName | .metadata.namespace = $namespace | .spec.template.metadata.labels.name = $appName | .spec.template.spec.containers[0].name = $appName | .spec.template.spec.containers[0].image = $image | .spec.template.spec.containers[0].ports[0].containerPort = ($port | tonumber) | .spec.template.selector.name = $appName | .spec.selector.name = $appName | .spec.triggers[1].imageChangeParams.containerNames[0] = $appName | .spec.triggers[1].imageChangeParams.from.name = $appName' deployment.json > deployment2.json
+
+jq --arg appName "$appName"  --arg port "$containerPort" --arg nodePort "$nodePort" --arg namespace 'prod' '.metadata.name = $appName | .metadata.namespace = $namespace | .metadata.labels.name = $appName | .spec.ports[0].port = ($port | tonumber) | .spec.ports[0].nodePort = ($nodePort | tonumber) | .spec.selector.name = $appName' service.json > service2.json
+
+oc apply -f imagestream2.json -n prod
+oc apply -f deployment2.json -n prod
+oc import-image -n prod ${isImage}:latest
+oc apply -f service2.json -n prod
