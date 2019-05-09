@@ -7,7 +7,7 @@ region=$4
 
 COUNT=1
 until [ $COUNT -eq "0" ]; do
-    curl http://${internalApiDNS}:${containerPort}/api-docs -o api.json
+    curl http://${internalApiDNS}:${containerPort}/api/docs-json -o api.json
     if [ -s api.json ]
     then
        let COUNT=0
