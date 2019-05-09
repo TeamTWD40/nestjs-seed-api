@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AdminModule } from './admin/admin.module';
 import { AppModule } from './app.module';
 import { ProfileModule } from './profile/profile.module';
+import { KafkaClient, Producer } from 'kafka-node';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -28,6 +29,25 @@ async function bootstrap() {
       showRequestDuration: true,
     },
   });
+
+  // Kafka
+  // const client = new KafkaClient({kafkaHost: 'localhost:2181'});
+  // const producer = new Producer(client);
+  // const payloads = [
+  //     { topic: 'topic1', messages: 'hi', partition: 0 },
+  // ];
+
+  // producer.on('ready', () => {
+  //     console.log('ready');
+  //     producer.send(payloads, (err, data) => {
+  //         console.log(data);
+  //         this.logResponse(data);
+  //     });
+  // });
+
+  // producer.on('error', (error) => {
+  //     console.log(error);
+  // });
 
   app.setGlobalPrefix('api');
 

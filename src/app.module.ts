@@ -13,6 +13,8 @@ import config from './config/keys';
 import { ProfileController } from './profile/profile.controller';
 import { ProfileModule } from './profile/profile.module';
 import { ProfileService } from './profile/profile.service';
+import { KafkaController } from './kafka/kafka.controller';
+import { ExampleKafkaService } from './shared/kafka/example-kafka.service';
 
 @Module({
   imports: [
@@ -20,11 +22,12 @@ import { ProfileService } from './profile/profile.service';
     ProfileModule,
     MongooseModule.forRoot(config.mongoURI, { useNewUrlParser: true }),
   ],
-  controllers: [AppController, AdminController, ProfileController],
+  controllers: [AppController, AdminController, ProfileController, KafkaController],
   providers: [
     AppService,
     AdminService,
     ProfileService,
+    ExampleKafkaService,
     AuthService,
     {
       provide: APP_GUARD,
