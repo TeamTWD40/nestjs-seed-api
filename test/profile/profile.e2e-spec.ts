@@ -1,23 +1,25 @@
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { ProfileModule } from 'src/profile/profile.module';
-// import * as request from 'supertest';
+import { Test, TestingModule } from '@nestjs/testing';
+import * as request from 'supertest';
 
-// describe('AppController (e2e)', () => {
-//   let app;
+import { AppModule } from '../../src/app.module';
+import { ProfileModule } from '../../src/profile/profile.module';
 
-//   beforeEach(async () => {
-//     const moduleFixture: TestingModule = await Test.createTestingModule({
-//       imports: [ProfileModule],
-//     }).compile();
+describe('ProfileController (e2e)', () => {
+  let app;
 
-//     app = moduleFixture.createNestApplication();
-//     await app.init();
-//   });
+  beforeEach(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [AppModule, ProfileModule]
+    }).compile();
 
-//   it('/ (GET)', () => {
-//     return request(app.getHttpServer())
-//       .get('/')
-//       .expect(200)
-//       .expect('Hello World!');
-//   });
-// });
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  it('/profile (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/profile')
+      .expect(403);
+    //   .expect('Hello World!');
+  });
+});

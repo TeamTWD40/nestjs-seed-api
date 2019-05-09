@@ -7,27 +7,27 @@ import { Profile } from '../profile/interfaces/profile.interface';
 @Injectable()
 export class AdminService {
 
-    constructor(@InjectModel('Admin') private readonly AdminModel: Model<Profile>) {}
+    constructor(@InjectModel('Profile') private readonly profileModel: Model<Profile>) {}
 
     async findAll(): Promise<Profile[]> {
-        return await this.AdminModel.find();
+        return await this.profileModel.find();
     }
 
     async findOne(id: string): Promise<Profile> {
-        return await this.AdminModel.findById(id);
+        return await this.profileModel.findById(id);
     }
 
-    async create(id: string, Admin: Profile): Promise<Profile> {
-        Admin._id = id;
-        const newAdmin = new this.AdminModel(Admin);
+    async create(id: string, profile: Profile): Promise<Profile> {
+        profile._id = id;
+        const newAdmin = new this.profileModel(profile);
         return await newAdmin.save();
     }
 
     async delete(id: string): Promise<Profile> {
-        return await this.AdminModel.findByIdAndRemove(id);
+        return await this.profileModel.findByIdAndRemove(id);
     }
 
-    async update(id: string, Admin: Profile): Promise<Profile> {
-        return await this.AdminModel.findByIdAndUpdate(id, Admin, { new: true });
+    async update(id: string, profile: Profile): Promise<Profile> {
+        return await this.profileModel.findByIdAndUpdate(id, profile, { new: true });
     }
 }

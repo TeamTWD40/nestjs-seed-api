@@ -7,7 +7,7 @@ import { AdminController } from './admin.controller';
 import { AdminService } from './admin.service';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: 'Admin', schema: ProfileSchema }])],
+  imports: [MongooseModule.forFeature([{ name: 'Profile', schema: ProfileSchema }])],
   controllers: [AdminController],
   providers: [AdminService, AuthService],
 })

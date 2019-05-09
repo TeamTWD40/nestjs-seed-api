@@ -1,5 +1,6 @@
 import { HttpModule, Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+
 import { ExampleHttpService } from './example-http.service';
 
 describe('NewsService', () => {

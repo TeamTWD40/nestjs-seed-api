@@ -1,18 +1,29 @@
-// import { Test, TestingModule } from '@nestjs/testing';
-// import { AdminService } from './admin.service';
+import { getModelToken } from '@nestjs/mongoose';
+import { Test, TestingModule } from '@nestjs/testing';
+import { Model } from 'mongoose';
+import { Profile } from 'src/profile/interfaces/profile.interface';
 
-// describe('AdminService', () => {
-//   let service: AdminService;
+import { AdminService } from './admin.service';
 
-//   beforeEach(async () => {
-//     const module: TestingModule = await Test.createTestingModule({
-//       providers: [AdminService],
-//     }).compile();
+describe('AdminService', () => {
+  let service: AdminService;
+  const profileModel: Model<Profile> = {};
 
-//     service = module.get<AdminService>(AdminService);
-//   });
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AdminService,
+        {
+          provide: getModelToken('Profile'),
+          useValue: profileModel,
+        },
+      ],
+    }).compile();
 
-//   it('should be defined', () => {
-//     expect(service).toBeDefined();
-//   });
-// });
+    service = module.get<AdminService>(AdminService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
