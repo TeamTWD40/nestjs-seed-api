@@ -21,22 +21,22 @@ export class AdminController {
         return this.adminService.findAll();
     }
 
-    @Get('profiles:id')
+    @Get('profiles/:id')
     findOne(@Param('id') id): Promise<Profile> {
         return this.adminService.findOne(id);
     }
 
-    @Post('profiles:id')
+    @Post('profiles/:id')
     create(@Param('id') id, @Body() profileDto: CreateProfileDto): Promise<Profile> {
         return this.adminService.create(id, profileDto as Profile);
     }
 
-    @Delete('profiles:id')
+    @Delete('profiles/:id')
     delete(@Param('id') id): Promise<Profile> {
         return this.adminService.delete(id);
     }
 
-    @Put('profiles:id')
+    @Put('profiles/:id')
     update(@Param('id') id, @Body() profile: CreateProfileDto): Promise<Profile> {
         return this.adminService.update(id, profile as Profile);
     }
