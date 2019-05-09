@@ -66,8 +66,8 @@ node('master') {
             sh 'npm install'
         }
 
-        /*stage('Unit Test'){
-            sh ''
+        stage('Unit Test'){
+            sh 'npm run test'
             publishHTML target: ([
             allowMissing         : false,
             alwaysLinkToLastBuild: false,
@@ -76,15 +76,15 @@ node('master') {
             reportFiles          : 'index.html',
             reportName           : 'HTML Report'
           ])
-        }*/
+        }
 
         stage('Build') {
-            sh 'npm run tsc'
+            sh 'npm run prestart:prod'
         }
         if (BRANCH_NAME ==~ "release.*" || BRANCH_NAME == 'stage') {
 
             stage('Integration Test'){
-                sh 'npm run e2e'
+                sh 'npm run test:e2e'
             }
         }
         if (BRANCH_NAME ==~ "release.*" || BRANCH_NAME == 'stage' || BRANCH_NAME ==~ "feature.*") {
