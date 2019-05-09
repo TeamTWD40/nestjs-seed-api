@@ -67,7 +67,7 @@ node('master') {
         }
 
         stage('Unit Test'){
-            sh 'npm run test-cov'
+            sh 'npm run test:cov'
             publishHTML target: ([
             allowMissing         : false,
             alwaysLinkToLastBuild: false,
@@ -79,7 +79,7 @@ node('master') {
         }
 
         stage('Build') {
-            sh 'npm run prestart-prod'
+            sh 'npm run prestart:prod'
         }
         if (BRANCH_NAME ==~ "release.*" || BRANCH_NAME == 'stage') {
 
