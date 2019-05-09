@@ -15,18 +15,16 @@ export class ExampleKafkaService {
   //   payloads = [{ topic: 'test', messages: 'hello world', partition: 0 }];
 
   constructor() {
-    this.client = new KafkaClient({ kafkaHost: 'localhost:9092' });
+    // this.client = new KafkaClient({ kafkaHost: 'localhost:9092' });
 
-    // Setup producer
-    this.producer = new Producer(this.client);
-    this.producer.on('ready', () => {
-        console.log('ready!!');
-    });
-    this.producer.on('error', error => {
-      this.producerErrors.next(error);
-    });
-
-    // Setup Consumer
+    // // Setup producer
+    // this.producer = new Producer(this.client);
+    // this.producer.on('ready', () => {
+    //     console.log('ready!!');
+    // });
+    // this.producer.on('error', error => {
+    //   this.producerErrors.next(error);
+    // });
 
   }
 
