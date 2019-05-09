@@ -67,12 +67,12 @@ node('master') {
         }
 
         stage('Unit Test'){
-            sh 'npm run test'
+            sh 'npm run test:cov'
             publishHTML target: ([
             allowMissing         : false,
             alwaysLinkToLastBuild: false,
             keepAll             : true,
-            reportDir            : 'reports/coverage',
+            reportDir            : 'coverage/lcov-report',
             reportFiles          : 'index.html',
             reportName           : 'HTML Report'
           ])
