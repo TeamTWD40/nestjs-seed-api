@@ -20,8 +20,8 @@ async function bootstrap() {
 
   const swaggerDoc = SwaggerModule.createDocument(app, options, { include: [AdminModule, ProfileModule] });
 
-  SwaggerModule.setup('/api/docs', app, swaggerDoc, {
-    swaggerUrl: `/api/docs-json`,
+  SwaggerModule.setup('/docs', app, swaggerDoc, {
+    swaggerUrl: `/docs-json`,
     explorer: true,
     swaggerOptions: {
       docExpansion: 'list',
@@ -49,7 +49,7 @@ async function bootstrap() {
   //     console.log(error);
   // });
 
-  app.setGlobalPrefix('api');
+  // app.setGlobalPrefix('');
 
   await app.listen(8081);
 }
