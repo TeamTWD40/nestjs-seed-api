@@ -1,0 +1,56 @@
+{
+  "kind": "DeploymentConfig",
+  "apiVersion": "v1",
+  "metadata": {
+    "name": "fda-recalls-ui",
+    "namespace": "dev"
+  },
+  "spec": {
+    "template": {
+      "metadata": {
+        "labels": {
+          "name": "fda-recalls-ui"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "jobsite-be",
+            "image": "twd-demo-staging/jobsite-be",
+            "ports": [
+              {
+                "containerPort": 8082,
+                "protocol": "TCP"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "replicas": 2,
+    "selector": {
+      "name": "jobsite-be"
+    },
+    "triggers": [
+      {
+        "type": "ConfigChange"
+      },
+      {
+        "type": "ImageChange",
+        "imageChangeParams": {
+          "automatic": true,
+          "containerNames": [
+            "jobsite-be"
+          ],
+          "from": {
+            "kind": "ImageStreamTag",
+            "name": "jobsite-be:latest"
+          }
+        }
+      }
+    ],
+    "strategy": {
+      "type": "Rolling"
+    }
+  }
+}
