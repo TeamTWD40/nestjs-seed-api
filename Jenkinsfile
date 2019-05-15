@@ -205,7 +205,7 @@ node('master') {
         stage('Promote to stage'){
            sh "git tag -a Build-${BUILD_NUMBER} -m \"Build Number ${BUILD_NUMBER}\""
             sh 'git checkout stage -f'
-            sh 'git merge origin/dev'
+            sh 'git merge origin/dev -f'
             sh "git push origin stage"
          }
           break;
@@ -230,7 +230,7 @@ node('master') {
               else
                 git checkout -b release -f
               fi'''
-              sh 'git merge origin/stage'
+              sh 'git merge origin/stage -f'
               sh 'git push origin release'
             } else {
                 echo "Code not promoted to production"
