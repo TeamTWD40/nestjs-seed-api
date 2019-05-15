@@ -3,7 +3,7 @@ node('master') {
   properties([disableConcurrentBuilds()])
   try {
       notifySlack('STARTED')
-      def appType = 'java'  //Enter either java or nodejs
+      def appType = 'nodejs'  //Enter either java or nodejs
       def internalApiDNS = 'api-internal.twdaws.net'    //Enter the same value as in the cloudformation parameter
       def apiDNS = 'api.twdaws.net'    //Enter the same value as in the cloudformation parameter
       def appComponent = 'backend'   //Enter either frontend or backend
@@ -68,24 +68,24 @@ node('master') {
         }
 
         stage('Unit Test'){
-            sh 'npm run test:ci'
+            sh 'npm run test:cov'
             publishHTML target: ([
             allowMissing         : false,
             alwaysLinkToLastBuild: false,
             keepAll             : true,
-            reportDir            : 'reports/coverage',
+            reportDir            : 'coverage/lcov-report',
             reportFiles          : 'index.html',
             reportName           : 'HTML Report'
           ])
         }
 
         stage('Build') {
-            sh label: '', script: 'npm run build'
+            sh 'npm run prestart:prod'
         }
         if (BRANCH_NAME ==~ "release.*" || BRANCH_NAME == 'stage') {
 
             stage('Integration Test'){
-                sh 'npm run e2e'
+                sh 'npm run test:e2e'
             }
         }
         if (BRANCH_NAME ==~ "release.*" || BRANCH_NAME == 'stage' || BRANCH_NAME ==~ "feature.*") {
@@ -229,16 +229,16 @@ node('master') {
                 git checkout release -f
               else
                 git checkout -b release -f
-              fi'''              
+              fi'''
               sh 'git merge origin/stage'
-              sh 'git push origin release'              
+              sh 'git push origin release'
             } else {
                 echo "Code not promoted to production"
             }
         }
         break;
      case 'release':
-      stage ('Publish release & Promote to master') {        
+      stage ('Publish release & Promote to master') {
         lastSuccessfullBuild(currentBuild.getPreviousBuild());
         withCredentials([string(credentialsId: 'github_token', variable: 'token')]) {
                   sh "curl --data '{\"tag_name\": \"v${getReleaseTag(passedBuilds.size()+1)}\",\"target_commitish\": \"release\",\"name\": \"v${getReleaseTag(passedBuilds.size()+1)}\",\"body\": \"Release of version ${getReleaseTag(passedBuilds.size()+1)}\",\"draft\": false,\"prerelease\": false}' https://api.github.com/repos/TeamTWD40/microservice-seed/releases?access_token=$token"
@@ -246,7 +246,7 @@ node('master') {
         sh 'git checkout master -f'
         sh 'git merge origin/release'
         sh 'git push origin master'
-      } 
+      }
     }
        stage('Clean Up'){
             sh "docker rmi ${REGISTRY}/${TAG} || echo 'No such image'"
