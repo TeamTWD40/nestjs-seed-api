@@ -3,8 +3,9 @@ node('master') {
   properties([disableConcurrentBuilds()])
   try {
       notifySlack('STARTED')
-      def appType = 'nodejs'  //Enter either java or nodejs
+      def appType = 'java'  //Enter either java or nodejs
       def internalApiDNS = 'api-internal.twdaws.net'    //Enter the same value as in the cloudformation parameter
+      def apiDNS = 'api.twdaws.net'    //Enter the same value as in the cloudformation parameter
       def appComponent = 'backend'   //Enter either frontend or backend
       def platform = 'eks'      //Enter either openshift or eks
       def healthcheckPath = getPath(appComponent)
@@ -67,24 +68,24 @@ node('master') {
         }
 
         stage('Unit Test'){
-            sh 'npm run test:cov'
+            sh 'npm run test:ci'
             publishHTML target: ([
             allowMissing         : false,
             alwaysLinkToLastBuild: false,
             keepAll             : true,
-            reportDir            : 'coverage/lcov-report',
+            reportDir            : 'reports/coverage',
             reportFiles          : 'index.html',
             reportName           : 'HTML Report'
           ])
         }
 
         stage('Build') {
-            sh 'npm run prestart:prod'
+            sh label: '', script: 'npm run build'
         }
         if (BRANCH_NAME ==~ "release.*" || BRANCH_NAME == 'stage') {
 
             stage('Integration Test'){
-                sh 'npm run test:e2e'
+                sh 'npm run e2e'
             }
         }
         if (BRANCH_NAME ==~ "release.*" || BRANCH_NAME == 'stage' || BRANCH_NAME ==~ "feature.*") {
@@ -157,7 +158,7 @@ node('master') {
       }
 
       if (BRANCH_NAME ==~ "release.*" || BRANCH_NAME == 'stage' || BRANCH_NAME == 'dev'){
-        stage("Deploy to ${BRANCH_NAME}"){
+        stage("Deploy to ${getEnv(BRANCH_NAME)}"){
            timeout(time: 10, unit: 'MINUTES'){
               switch(platform){
                   case 'openshift':
@@ -175,13 +176,15 @@ node('master') {
                       break;
                   case 'eks':
                       if (BRANCH_NAME ==~ "release.*"){
-                        sh "kubectl create deployment ${appName} --image=${IMAGE} || kubectl set image deployment ${appName} ${appName}=${IMAGE} --record=true"
-                        sh "kubectl scale --replicas=2 deployment/${appName}"
-                        sh "kubectl expose deployment ${appName} --port=${containerPort}  --type=NodePort || echo 'Service ${appName} already created'"
-                        sh "kubectl patch service ${appName}  -p '{\"spec\":{\"ports\":[{\"port\":${containerPort},\"nodePort\":${nodePort}}]}}' || echo 'Service ${appName} already updated'"
+                        sh "kubectl create deployment ${appName} --image=${IMAGE} -n prod || kubectl set image deployment ${appName} ${appName}=${IMAGE} -n prod --record=true"
+                        sh "kubectl patch deployment ${appName} -n prod -p '{\"spec\": { \"template\": {  \"spec\": { \"containers\": [{ \"name\": \"${appName}\", \"readinessProbe\": { \"httpGet\": { \"path\": \"${healthcheckPath}\", \"port\": ${containerPort} },\"initialDelaySeconds\": 60, \"timeoutSeconds\": 5}, \"livenessProbe\": { \"httpGet\": { \"path\": \"${healthcheckPath}\", \"port\": ${containerPort} }, \"initialDelaySeconds\": 70,\"timeoutSeconds\": 10, \"failureThreshold\": 5 } } ]}}}}' || echo 'deployment ${appName} already patched'"
+                        sh "kubectl scale --replicas=2 deployment/${appName} -n prod"
+                        sh "kubectl expose deployment ${appName} --port=${containerPort}  --type=NodePort -n prod || echo 'Service ${appName} already created'"
+                        sh "kubectl patch service ${appName} -n prod -p '{\"spec\":{\"ports\":[{\"port\":${containerPort},\"nodePort\":${nodePort}}]}}' || echo 'Service ${appName} already updated'"
                       }
                       else {
                         sh "kubectl create deployment ${appName} --image=${IMAGE} -n ${BRANCH_NAME} || kubectl set image deployment ${appName} ${appName}=${IMAGE} -n ${BRANCH_NAME} --record=true"
+                        sh "kubectl patch deployment ${appName} -n ${BRANCH_NAME} -p '{\"spec\": { \"template\": {  \"spec\": { \"containers\": [{ \"name\": \"${appName}\", \"readinessProbe\": { \"httpGet\": { \"path\": \"${healthcheckPath}\", \"port\": ${containerPort} },\"initialDelaySeconds\": 60, \"timeoutSeconds\": 5}, \"livenessProbe\": { \"httpGet\": { \"path\": \"${healthcheckPath}\", \"port\": ${containerPort} }, \"initialDelaySeconds\": 70,\"timeoutSeconds\": 10, \"failureThreshold\": 5 } } ]}}}}' || echo 'deployment ${appName} already patched'"
                         sh "kubectl scale --replicas=2 deployment/${appName} -n ${BRANCH_NAME}"
                         sh "kubectl expose deployment ${appName} --port=${containerPort} --type=NodePort -n ${BRANCH_NAME} || echo 'Service ${appName} already created'"
                         sh "kubectl patch service ${appName} -n ${BRANCH_NAME}  -p '{\"spec\":{\"ports\":[{\"port\":${containerPort},\"nodePort\":${nodePort}}]}}' || echo 'Service ${appName} already updated'"
@@ -191,7 +194,7 @@ node('master') {
                 if (appComponent == 'backend'){
                 sleep (10)
                 sh 'chmod +x api-import.sh'
-                sh "./api-import.sh $internalApiDNS $containerPort $appName $region"
+                  sh "./api-import.sh $internalApiDNS $containerPort $appName $region ${getEnv(BRANCH_NAME)} $apiDNS"
                 }
             }
           }
@@ -199,7 +202,7 @@ node('master') {
 
     switch(BRANCH_NAME){
       case 'dev':
-        stage('Promote to Stage Branch'){
+        stage('Promote to stage'){
            sh "git tag -a Build-${BUILD_NUMBER} -m \"Build Number ${BUILD_NUMBER}\""
             sh 'git checkout stage -f'
             sh 'git merge origin/dev'
@@ -207,11 +210,11 @@ node('master') {
          }
           break;
       case 'stage':
-        stage('Promote to Release and Master Branches'){
-        lastSuccessfullBuild(currentBuild.getPreviousBuild());
+        stage('Promote to release'){
             def userInput
             try {
               timeout(time: 60, unit: 'MINUTES'){
+                slackSend (color: '#FFFF00', message: "${appName} stage branch is ready for promotion to release. Login to Jenkins to approve")
                 userInput = input(
                     id: 'Promote1', message: 'Promote Code to Production?', parameters: [
                     [$class: 'BooleanParameterDefinition', defaultValue: true, description: '', name: 'Please Confirm Promotion to Production']
@@ -226,26 +229,30 @@ node('master') {
                 git checkout release -f
               else
                 git checkout -b release -f
-              fi'''
-              withCredentials([string(credentialsId: 'github_token', variable: 'token')]) {
-                  sh "curl --data '{\"tag_name\": \"v${getReleaseTag(passedBuilds.size()+1)}\",\"target_commitish\": \"release\",\"name\": \"v${getReleaseTag(passedBuilds.size()+1)}\",\"body\": \"Release of version ${getReleaseTag(passedBuilds.size()+1)}\",\"draft\": false,\"prerelease\": false}' https://api.github.com/repos/TeamTWD40/microservice-seed/releases?access_token=$token"
-              }
+              fi'''              
               sh 'git merge origin/stage'
-              sh 'git push origin release'
-              sh 'git checkout master -f'
-              sh 'git merge origin/stage'
-              sh 'git push origin master'
+              sh 'git push origin release'              
             } else {
                 echo "Code not promoted to production"
             }
         }
+        break;
+     case 'release':
+      stage ('Publish release & Promote to master') {        
+        lastSuccessfullBuild(currentBuild.getPreviousBuild());
+        withCredentials([string(credentialsId: 'github_token', variable: 'token')]) {
+                  sh "curl --data '{\"tag_name\": \"v${getReleaseTag(passedBuilds.size()+1)}\",\"target_commitish\": \"release\",\"name\": \"v${getReleaseTag(passedBuilds.size()+1)}\",\"body\": \"Release of version ${getReleaseTag(passedBuilds.size()+1)}\",\"draft\": false,\"prerelease\": false}' https://api.github.com/repos/TeamTWD40/microservice-seed/releases?access_token=$token"
+              }
+        sh 'git checkout master -f'
+        sh 'git merge origin/release'
+        sh 'git push origin master'
+      } 
     }
        stage('Clean Up'){
             sh "docker rmi ${REGISTRY}/${TAG} || echo 'No such image'"
             sh "docker system prune -f"
             hygieiaBuildPublishStep buildStatus: 'Success'
         }
-
 
   }
   catch (err) {
@@ -332,4 +339,12 @@ def getReleaseTag(int number){
     double version;
     version = number / 10;
     return version
+}
+def getEnv(String branch){
+  if (branch ==~ "release.*"){
+    return 'production'
+  }
+  else {
+    return "${branch}"
+  }
 }
